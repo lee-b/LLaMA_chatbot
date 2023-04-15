@@ -26,17 +26,22 @@ async def run(model_info: ModelInfo, server):
                     "fn_index": 7
                 })
                 await websocket.send(hash_dict_json)
+
             elif msg_content == "estimation":
                     pass
+
             elif msg_content == "send_data":
                     hash_dict_json = json.dumps({
                         "session_hash": session,
                         "fn_index": 7,
                         "data": model_info.model_params_as_list(),
                     })
+
                     await websocket.send()
+
             elif msg_content == "process_starts":
                     pass
+
             elif msg_content in ("process_generating", "process_completed"):
                     ret_me = content["output"]["data"][0]
                     do_it = False
