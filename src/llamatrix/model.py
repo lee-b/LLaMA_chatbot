@@ -24,13 +24,13 @@ class ModelInfo:
         ModelParam.TOP_P: 0.9,
         ModelParam.TYPICAL_P: 1.0,
         ModelParam.REPETITION_PENALTY: 1.05,
-        ModelParam.TOP_K = 0.0,
-        ModelParam.MIN_LENGTH = 0,
-        ModelParam.NO_REPEAT_NGRAM_SIZE = 0,
-        ModelParam.NUM_BEAMS = 1,
-        ModelParam.PENALTY_ALPHA = 0.0,
-        ModelParam.LENGTH_PENALTY = 1.0,
-        ModelParam.EARLY_STOPPING = False,
+        ModelParam.TOP_K: 0.0,
+        ModelParam.MIN_LENGTH: 0,
+        ModelParam.NO_REPEAT_NGRAM_SIZE: 0,
+        ModelParam.NUM_BEAMS: 1,
+        ModelParam.PENALTY_ALPHA: 0.0,
+        ModelParam.LENGTH_PENALTY: 1.0,
+        ModelParam.EARLY_STOPPING: False,
     }
 
     def __init__(self, prompt, custom_params=None):
@@ -50,7 +50,6 @@ class ModelInfo:
     def model_params_as_list(self):
         ## What is this for? textgen-web-ui takes params in this order, I guess?
         return [
-            self._params[self.prompt()],
             self._params[ModelParam.MAX_NEW_TOKENS],
             self._params[ModelParam.DO_SAMPLE],
             self._params[ModelParam.TEMPERATURE],

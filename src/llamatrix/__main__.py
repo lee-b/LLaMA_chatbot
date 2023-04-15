@@ -7,6 +7,7 @@ from nio.exceptions import LocalProtocolError
 from .client import AsyncClient
 from .db import init_db, save_db, database
 from .model import ModelInfo
+from .topic_manager import TopicManager
 
 
 class Config:
@@ -20,7 +21,7 @@ class Config:
 		self.input_text_template = open("input.txt", "r").read()
 		self.assistant_input_text_template = open("assistant_input.txt", "r").read()
 
-		self.model_info = ModelInfo() # use defaults for now
+		self.model_info = ModelInfo(self.prompt_text_template) # use defaults for now
 
 
 async def async_main() -> None:
@@ -39,6 +40,8 @@ async def async_main() -> None:
 		print("ERROR: {r}\n\tProbably invalid server credentials; couldn't log in!", file=sys.stderr)
 		return 1
 
+	topic_manager = TopicManager()
+
 	try:
 		await client.sync()
 		await client.join(config.matrix_room)
@@ -49,7 +52,8 @@ async def async_main() -> None:
 			config.matrix_user,
 			config.assistant_input_text_template,
 			config.matrix_server,
-			config.model_info
+			config.model_info,
+			topic_manager,
 		)
 
 		client.add_event_callback(message_cb, RoomMessageText)

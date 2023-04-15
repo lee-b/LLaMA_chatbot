@@ -3,6 +3,8 @@ from nio import AsyncClient, MatrixRoom, RoomMessageText
 from . import msg
 from .db import database, save_db, load_db
 from .model import ModelInfo
+from .commands import command_map
+from .topic_manager import TopicManager
 
 
 async def edit_markdown_message(room: MatrixRoom, message: str, original_event_id: str = None):
@@ -24,49 +26,19 @@ async def edit_markdown_message(room: MatrixRoom, message: str, original_event_i
     )
 
 
-def process_message(s, thread_id, server, model_info: ModelInfo):
-	reply = None
+def process_message(msg, thread_id, server, model_info: ModelInfo):
+	first_word = msg.split(' ')[0]
 
-	if s == "!reset":
-		msg.reset(thread_id)
-		reply = "resetting..."
-	elif s == "!full_history":
-		reply = msg.full_history(thread_id)
-	elif s.split(" ")[0] == "!save":
-		database[thread_id + ": " + s.split(" ")[1]] = msg.full_history(thread_id)
-		save_db()
-		reply = "saved"
-	elif s.split(" ")[0] == "!load":
-		full_history = ""
+	if first_word.startswith("!"):
 		try:
-			full_history = database[thread_id + ": " + s.split(" ")[1]]
-			msg.load_history(thread_id, full_history)
-			reply = "loaded"
-		except:
-			reply = "error: db entry not found"
-#	elif s.split(" ")[0] == "!list_threads":
-#		reply = ""
-#		for key in database.keys():
-#			if key.startswith(thread_id + ": "):
-#				reply += "> " + key + "\n"
-#		if reply == "":
-#			reply = "no threads found"
-	elif s.split(" ")[0] == "!raw":
-		reply = msg.predict(s[len("!raw "):], server, model_info)
-#	elif s.split(" ")[0] == "!sh":
-#		prompt = "```bash\n# " + s[len("!sh "):] + " then exit.\n"
-#		reply = msg.predict(prompt, server, model_info)[len(prompt):]
-#		reply2 = ""
-#		for s_ in reply.split("\n"):
-#			if not "exit" in s_:
-#				reply2 += s_ + "\n"
-#			else:
-#				break
-#		reply = reply2
-#	elif s.split(" ")[0] == "!py":
-#		prompt = "```python\n# " + s[len("!sh "):] + "\n"
-#		reply = msg.predict(prompt, server, model_info)#[len(prompt):]
-	return reply
+			command = first_word[1:]
+			command_handler = command_map[command]
+		except KeyError as e:
+			return None
+
+		reply = command_handler(msg, thread_id, server, model_info)
+
+	return None
 
 
 def set_typing_state(typing, room):
@@ -107,17 +79,18 @@ async def stream_message(room, stream):
 	return
 
 
-async def message_callback(room: MatrixRoom, event: RoomMessageText, input_text_template, matrix_user, assistant_input_text_template, server, model_info) -> None:
+async def message_callback(room: MatrixRoom, event: RoomMessageText, input_text_template, matrix_user, assistant_input_text_template, server, model_info: ModelInfo, topic_manager: TopicManager) -> None:
 	if event.sender == matrix_user:
 		return
 
 	pm = process_message(event.body, event.sender, server, model_info)
+
 	if pm != None:
 		await client.room_send(room_id=room.room_id, message_type="m.room.message", content={"msgtype": "m.text", "body": pm})
 	else:
 		loop = asyncio.get_running_loop()
 
-		send_message_task = msg.send_message_stream(
+		send_message_task = topic_manager.send_message_stream(
 			event.body,
 			event.sender,
 			input_text_template,
