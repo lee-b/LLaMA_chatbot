@@ -1,0 +1,5 @@
+export MATRIX_SERVER=http://localhost:8008
+export MATRIX_USER=bot
+export MATRIX_PASSWORD=bot
+export MATRIX_ROOM=bot
+
