@@ -7,23 +7,22 @@ from .commands import command_map
 from .topic_manager import TopicManager
 
 
-async def edit_markdown_message(room: MatrixRoom, message: str, original_event_id: str = None):
-    content = {
-        "msgtype": "m.text",
-        "body": " * " + message,
-        "m.new_content": {
-            "msgtype": "m.text",
-            "body": message,
-        },
-        "m.relates_to": {"rel_type": "m.replace", "event_id": original_event_id},
-    }
+async def edit_markdown_message(client, room: MatrixRoom, message: str, original_event_id: str = None):
+	content = {
+		"msgtype": "m.text",
+		"body": " * " + message,
+		"m.new_content": {
+			"msgtype": "m.text",
+			"body": message,
+		},
+		"m.relates_to": {"rel_type": "m.replace", "event_id": original_event_id},
+	}
 
-    #
-    return await client.room_send(
-        room_id=room.room_id,
-        message_type="m.room.message",
-        content=content,
-    )
+	return await client.room_send(
+		room_id=room.room_id,
+		message_type="m.room.message",
+		content=content,
+	)
 
 
 def process_message(msg, thread_id, server, model_info: ModelInfo):
@@ -41,7 +40,7 @@ def process_message(msg, thread_id, server, model_info: ModelInfo):
 	return None
 
 
-def set_typing_state(typing, room):
+def set_typing_state(client, typing, room):
 	typing_task = client.room_typing(
 		room.room_id,
 		typing_state=typey,
@@ -53,8 +52,8 @@ def set_typing_state(typing, room):
 	loop.create_task(typing_task)
 
 
-async def stream_message(room, stream):
-	set_typing_state(True, room)
+async def stream_message(client, room, stream):
+	set_typing_state(client, True, room)
 
 	m = await client.room_send(
 		room_id=room.room_id,
@@ -68,18 +67,16 @@ async def stream_message(room, stream):
 	me = m.event_id
 
 	async for i in stream:
-		set_typing_state(True, room)
+		set_typing_state(client, True, room)
 
 		print(m.event_id)
 
-		m = await edit_markdown_message(room, i, me)
+		msg = await edit_markdown_message(client, room, i, me)
 
-	set_typing_state(False, room)
-
-	return
+	set_typing_state(client, False, room)
 
 
-async def message_callback(room: MatrixRoom, event: RoomMessageText, input_text_template, matrix_user, assistant_input_text_template, server, model_info: ModelInfo, topic_manager: TopicManager) -> None:
+async def message_callback(client, room: MatrixRoom, event: RoomMessageText, input_text_template, matrix_user, assistant_input_text_template, server, model_info: ModelInfo, topic_manager: TopicManager) -> None:
 	if event.sender == matrix_user:
 		return
 

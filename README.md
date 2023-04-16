@@ -9,9 +9,10 @@ WIP, based of https://github.com/spv420/LLaMA\_chatbot
 
 ## Running it
 - Copy dot-envrc-example to .envrc edit it as needed
-- Download the LLaMA weights, whatever is the largest that'll fit on your GPU(s)
-- Run text-generation-webui for that model, `--listen`
 - Run `direnv allow` to activate your .envrc file, or just `source .envrc`
-- llamatrix
+- Copy the example/* files to config/ and edit them if you like
+- Install and run text-generation-webui per its instructions, and run with the `--listen` flag.
+- Run `llamatrix`
+- Login as another user, and start chatting with llamatrix on the server they're registered with.
 - Enjoy
 

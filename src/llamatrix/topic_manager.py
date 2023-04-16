@@ -5,7 +5,7 @@ class TopicManager:
     """Manages the threads of different discussions, and adapts text to the model templates formats"""
 
     def __init__(self, prompt_template, input_text_template, assistant_input_text_template):
-        self._prompt_template = prompt or open("prompt.txt", "r").read()
+        self._prompt_template = prompt_template
         self._input_txt_template = input_text_template
         self._assistant_input_text_template = assistant_input_text_template
         self._discussions = {}
